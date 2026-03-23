@@ -3,6 +3,23 @@ export type RouteCoordinate = {
   lng: number;
 };
 
+export type RouteWaypoint = RouteCoordinate & {
+  id: string;
+  name: string;
+  type: "start" | "checkpoint" | "goal";
+  order: number;
+};
+
+export type RouteLeg = {
+  id: string;
+  fromWaypointId: string;
+  toWaypointId: string;
+  distanceM: number;
+  durationMin: number;
+  coordinates: RouteCoordinate[];
+  color: string;
+};
+
 export type UserProfile = {
   id: string;
   userId: string;
@@ -76,6 +93,8 @@ export type SuggestedRoute = {
   durationMin: number;
   polyline: string;
   coordinates: RouteCoordinate[];
+  waypoints: RouteWaypoint[];
+  legs: RouteLeg[];
   reason: string;
   riskLevel: "low" | "medium" | "high";
 };

@@ -11,10 +11,11 @@ export class InMemoryFixedRouteRepository implements FixedRouteRepository {
       tags: ["fixed", "shade", "quiet_street"],
       polyline: "tokyo-station-short-loop",
       waypoints: [
-        { lat: 35.68162, lng: 139.76838 },
-        { lat: 35.68088, lng: 139.76928 },
-        { lat: 35.67992, lng: 139.76862 },
-        { lat: 35.68018, lng: 139.76734 },
+        { lat: 35.68142, lng: 139.76798 },
+        { lat: 35.68176, lng: 139.76882 },
+        { lat: 35.68112, lng: 139.76924 },
+        { lat: 35.68036, lng: 139.76872 },
+        { lat: 35.68052, lng: 139.76772 },
       ],
     },
     {
@@ -25,9 +26,10 @@ export class InMemoryFixedRouteRepository implements FixedRouteRepository {
       tags: ["fixed", "familiar_route"],
       polyline: "tokyo-station-safe-short",
       waypoints: [
-        { lat: 35.68138, lng: 139.76792 },
-        { lat: 35.68082, lng: 139.76818 },
-        { lat: 35.68058, lng: 139.76734 },
+        { lat: 35.68136, lng: 139.76776 },
+        { lat: 35.68118, lng: 139.76832 },
+        { lat: 35.68068, lng: 139.76828 },
+        { lat: 35.6807, lng: 139.76756 },
       ],
     },
     {
@@ -38,11 +40,12 @@ export class InMemoryFixedRouteRepository implements FixedRouteRepository {
       tags: ["fixed", "park", "shade"],
       polyline: "tokyo-station-standard-loop",
       waypoints: [
-        { lat: 35.68202, lng: 139.76872 },
-        { lat: 35.68112, lng: 139.77028 },
-        { lat: 35.67986, lng: 139.76988 },
-        { lat: 35.67934, lng: 139.76822 },
-        { lat: 35.68014, lng: 139.76692 },
+        { lat: 35.68182, lng: 139.76792 },
+        { lat: 35.68218, lng: 139.76916 },
+        { lat: 35.68152, lng: 139.77002 },
+        { lat: 35.68042, lng: 139.76978 },
+        { lat: 35.67996, lng: 139.76862 },
+        { lat: 35.68044, lng: 139.76758 },
       ],
     }
   ];

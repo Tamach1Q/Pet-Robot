@@ -1,4 +1,11 @@
-import type { FixedRoute, RouteCoordinate, SuggestedRoute, UserProfile, WeatherSnapshot } from "../types/domain.js";
+import type {
+  FixedRoute,
+  RouteCoordinate,
+  RouteWaypoint,
+  SuggestedRoute,
+  UserProfile,
+  WeatherSnapshot,
+} from "../types/domain.js";
 import type { SuggestWalkRouteBody } from "../types/api.js";
 import type { FixedRouteRepository } from "../repositories/interfaces/fixedRouteRepository.js";
 import type { UserProfileRepository } from "../repositories/interfaces/userProfileRepository.js";
@@ -73,10 +80,43 @@ function buildReason(profile: UserProfile, weather: WeatherSnapshot, route: Fixe
   return `${route.name} を今日の散歩候補として提案`;
 }
 
+function buildRouteWaypoints(route: FixedRoute, currentLocation: RouteCoordinate): RouteWaypoint[] {
+  const checkpoints = route.waypoints.map((point, index) => ({
+    id: `${route.routeId}-checkpoint-${index + 1}`,
+    name: `ポイント${index + 1}`,
+    type: "checkpoint" as const,
+    order: index + 1,
+    lat: point.lat,
+    lng: point.lng,
+  }));
+
+  return [
+    {
+      id: `${route.routeId}-start`,
+      name: "しゅっぱつ",
+      type: "start",
+      order: 0,
+      lat: currentLocation.lat,
+      lng: currentLocation.lng,
+    },
+    ...checkpoints,
+    {
+      id: `${route.routeId}-goal`,
+      name: "おうち",
+      type: "goal",
+      order: checkpoints.length + 1,
+      lat: currentLocation.lat,
+      lng: currentLocation.lng,
+    },
+  ];
+}
+
 function toSuggestedRoute(
   route: FixedRoute,
   generatedRoute: {
     coordinates: RouteCoordinate[];
+    waypoints: RouteWaypoint[];
+    legs: SuggestedRoute["legs"];
     distanceM: number;
     durationMin: number;
     polyline: string;
@@ -91,6 +131,8 @@ function toSuggestedRoute(
     durationMin: generatedRoute.durationMin || route.durationMin,
     polyline: generatedRoute.polyline,
     coordinates: generatedRoute.coordinates,
+    waypoints: generatedRoute.waypoints,
+    legs: generatedRoute.legs,
     reason: buildReason(profile, weather, route, adjustedDuration),
     riskLevel:
       adjustedDuration === 0
@@ -142,11 +184,21 @@ export class RouteSuggestionService {
       lat: input.currentLocation.lat,
       lng: input.currentLocation.lng,
     };
+    const recommendedWaypoints = buildRouteWaypoints(recommended, currentLocation);
+    const alternativeWaypoints = alternative
+      ? buildRouteWaypoints(alternative, currentLocation)
+      : null;
 
     const [recommendedGeneratedRoute, alternativeGeneratedRoute] = await Promise.all([
-      this.routingService.generateWalkingLoop(currentLocation, recommended.waypoints),
+      this.routingService.generateWalkingLoop({
+        routeId: recommended.routeId,
+        waypoints: recommendedWaypoints,
+      }),
       alternative
-        ? this.routingService.generateWalkingLoop(currentLocation, alternative.waypoints)
+        ? this.routingService.generateWalkingLoop({
+            routeId: alternative.routeId,
+            waypoints: alternativeWaypoints!,
+          })
         : Promise.resolve(null),
     ]);
 
