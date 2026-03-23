@@ -1,0 +1,46 @@
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --bg: #f4efe6;
+  --surface: #fffaf2;
+  --ink: #2d241d;
+  --muted: #6f6256;
+  --line: #dccfbe;
+  --accent: #b86d3c;
+  --accent-strong: #8e4e25;
+  --soft: #ece1d1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at top, #fff7eb 0%, #f4efe6 55%, #efe6d9 100%);
+  color: var(--ink);
+  font-family: "Hiragino Maru Gothic ProN", "YuKyokasho", "YuGothic", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 22px;
+  font-family: "Hiragino Maru Gothic ProN", "YuKyokasho", "YuGothic", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+}
