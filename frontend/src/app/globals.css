@@ -1,14 +1,17 @@
+@import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --bg: #f4efe6;
+  --bg: #f3ead8;
   --surface: #fffaf2;
-  --ink: #2d241d;
-  --muted: #6f6256;
-  --line: #dccfbe;
-  --accent: #b86d3c;
-  --accent-strong: #8e4e25;
-  --soft: #ece1d1;
+  --surface-strong: #fff4e4;
+  --ink: #2e261f;
+  --muted: #685c4f;
+  --line: #d8c7b1;
+  --accent: #cc6b2c;
+  --accent-strong: #9f4d18;
+  --soft: #efe0c8;
+  --success: #1f7a4c;
 }
 
 * {
@@ -17,22 +20,15 @@
 
 html,
 body {
+  min-height: 100%;
   margin: 0;
   padding: 0;
-  background:
-    radial-gradient(circle at top, #fff7eb 0%, #f4efe6 55%, #efe6d9 100%);
-  color: var(--ink);
-  font-family: "Hiragino Maru Gothic ProN", "YuKyokasho", "YuGothic", sans-serif;
 }
 
 body {
-  min-height: 100vh;
-}
-
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  border-radius: 22px;
+  background:
+    radial-gradient(circle at top, #fff6e8 0%, #f3ead8 48%, #eadcc1 100%);
+  color: var(--ink);
   font-family: "Hiragino Maru Gothic ProN", "YuKyokasho", "YuGothic", sans-serif;
 }
 
@@ -41,6 +37,33 @@ a {
   text-decoration: none;
 }
 
-button {
+button,
+input,
+select,
+textarea {
   font: inherit;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  font-family: "Hiragino Maru Gothic ProN", "YuKyokasho", "YuGothic", sans-serif;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 14px 28px rgba(102, 67, 36, 0.14) !important;
+}
+
+.leaflet-control-zoom a {
+  width: 52px !important;
+  height: 52px !important;
+  line-height: 52px !important;
+  font-size: 1.5rem !important;
+  color: var(--ink) !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 11px !important;
 }

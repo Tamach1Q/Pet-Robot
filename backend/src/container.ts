@@ -1,6 +1,7 @@
 import { loadEnv } from "./config/env.js";
 import { RouteSuggestionController } from "./controllers/routeSuggestionController.js";
 import { UserProfileController } from "./controllers/userProfileController.js";
+import { WalkRouteController } from "./controllers/walkRouteController.js";
 import { WalkHistoryController } from "./controllers/walkHistoryController.js";
 import { createPostgresPool } from "./lib/postgres.js";
 import { InMemoryFixedRouteRepository } from "./repositories/in-memory/inMemoryFixedRouteRepository.js";
@@ -63,6 +64,7 @@ export function createContainer() {
     },
     controllers: {
       routeSuggestionController: new RouteSuggestionController(routeSuggestionService),
+      walkRouteController: new WalkRouteController(routingService),
       userProfileController: new UserProfileController(userProfileService),
       walkHistoryController: new WalkHistoryController(
         personalizationService,

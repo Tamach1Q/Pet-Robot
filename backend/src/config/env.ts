@@ -53,7 +53,8 @@ export function loadEnv(): Env {
     host: process.env.HOST ?? "0.0.0.0",
     storageMode,
     databaseUrl: process.env.DATABASE_URL ?? null,
-    openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY ?? null,
+    openRouteServiceApiKey:
+      process.env.ORS_API_KEY ?? process.env.OPENROUTESERVICE_API_KEY ?? null,
     openRouteServiceBaseUrl:
       process.env.OPENROUTESERVICE_BASE_URL ?? "https://api.openrouteservice.org",
   };

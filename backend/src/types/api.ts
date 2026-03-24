@@ -8,6 +8,14 @@ export type SuggestWalkRouteBody = {
   requestedAt: string;
 };
 
+export type GenerateLoopRouteBody = {
+  currentLocation: {
+    lat: number;
+    lng: number;
+  };
+  desiredWalkMinutes: number;
+};
+
 export type CreateWalkHistoryBody = {
   userId: string;
   routeId?: string;

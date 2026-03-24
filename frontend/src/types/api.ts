@@ -117,3 +117,20 @@ export type SuggestWalkRouteResponse = {
     weatherAdjustedDurationMin: number;
   };
 };
+
+export type GenerateLoopRouteRequest = {
+  currentLocation: {
+    lat: number;
+    lng: number;
+  };
+  desiredWalkMinutes: number;
+};
+
+export type GenerateLoopRouteResponse = {
+  status: "ok";
+  route: {
+    coordinates: [number, number][];
+    totalDistanceMeters: number;
+    estimatedDurationSeconds: number;
+  };
+};

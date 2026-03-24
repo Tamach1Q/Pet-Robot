@@ -1,1 +1,1 @@
-export type ScreenMode = "proposal" | "walking" | "feedback";
+export type ScreenMode = "setup" | "proposal" | "walking" | "feedback";

@@ -1,4 +1,6 @@
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:3000"
+).replace(/\/$/, "");
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -11,7 +13,19 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    let message = `API request failed: ${response.status}`;
+
+    try {
+      const errorPayload = (await response.json()) as { message?: string };
+
+      if (errorPayload.message) {
+        message = errorPayload.message;
+      }
+    } catch {
+      // Ignore non-JSON error bodies and keep the fallback message.
+    }
+
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;

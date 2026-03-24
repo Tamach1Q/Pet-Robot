@@ -1,10 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { RouteSuggestionController } from "../controllers/routeSuggestionController.js";
 import { UserProfileController } from "../controllers/userProfileController.js";
+import { WalkRouteController } from "../controllers/walkRouteController.js";
 import { WalkHistoryController } from "../controllers/walkHistoryController.js";
 
 type RouteDependencies = {
   routeSuggestionController: RouteSuggestionController;
+  walkRouteController: WalkRouteController;
   userProfileController: UserProfileController;
   walkHistoryController: WalkHistoryController;
 };
@@ -13,6 +15,7 @@ export async function registerRoutes(
   app: FastifyInstance,
   dependencies: RouteDependencies,
 ): Promise<void> {
+  app.post("/api/v1/walk-routes/loop", dependencies.walkRouteController.generateLoop);
   app.post("/api/v1/walk-routes/suggest", dependencies.routeSuggestionController.suggest);
 
   app.post("/api/v1/walk-history", dependencies.walkHistoryController.create);

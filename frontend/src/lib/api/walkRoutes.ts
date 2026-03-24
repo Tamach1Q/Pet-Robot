@@ -1,5 +1,9 @@
 import { apiFetch } from "./client";
-import type { SuggestWalkRouteResponse } from "@/types/api";
+import type {
+  GenerateLoopRouteRequest,
+  GenerateLoopRouteResponse,
+  SuggestWalkRouteResponse,
+} from "@/types/api";
 
 export async function suggestWalkRoute() {
   return apiFetch<SuggestWalkRouteResponse>("/api/v1/walk-routes/suggest", {
@@ -13,5 +17,12 @@ export async function suggestWalkRoute() {
       },
       requestedAt: "2026-03-23T08:00:00+09:00",
     }),
+  });
+}
+
+export async function generateLoopRoute(input: GenerateLoopRouteRequest) {
+  return apiFetch<GenerateLoopRouteResponse>("/api/v1/walk-routes/loop", {
+    method: "POST",
+    body: JSON.stringify(input),
   });
 }
