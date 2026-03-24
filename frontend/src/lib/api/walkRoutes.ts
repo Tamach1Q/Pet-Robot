@@ -8,8 +8,8 @@ export async function suggestWalkRoute() {
       userId: "11111111-1111-1111-1111-111111111111",
       robotId: "robot-001",
       currentLocation: {
-        lat: 35.6812,
-        lng: 139.7671,
+        lat: 35.67336,
+        lng: 139.7591,
       },
       requestedAt: "2026-03-23T08:00:00+09:00",
     }),

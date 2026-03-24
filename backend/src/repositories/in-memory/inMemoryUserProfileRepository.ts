@@ -8,9 +8,9 @@ export class InMemoryUserProfileRepository implements UserProfileRepository {
   constructor() {
     const now = new Date().toISOString();
 
-    this.profiles.set("user-001", {
-      id: "profile-001",
-      userId: "user-001",
+    this.profiles.set("11111111-1111-1111-1111-111111111111", {
+      id: "22222222-2222-2222-2222-222222222222",
+      userId: "11111111-1111-1111-1111-111111111111",
       preferredWalkTimeStart: "07:00",
       preferredWalkTimeEnd: "10:00",
       mobilitySupportLevel: 0,

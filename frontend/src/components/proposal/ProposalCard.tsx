@@ -8,6 +8,20 @@ import { suggestWalkRoute } from "@/lib/api/walkRoutes";
 import type { SuggestWalkRouteResponse } from "@/types/api";
 import { RouteMap } from "./RouteMap";
 
+function waypointChipLabel(
+  waypoint: NonNullable<SuggestWalkRouteResponse["recommendedRoute"]>["waypoints"][number],
+): string {
+  if (waypoint.type === "start") {
+    return "出発";
+  }
+
+  if (waypoint.type === "goal") {
+    return "おうち";
+  }
+
+  return String(waypoint.order);
+}
+
 export function ProposalCard() {
   const [data, setData] = useState<SuggestWalkRouteResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +56,7 @@ export function ProposalCard() {
 
   const recommendedRoute = data?.recommendedRoute ?? null;
   const alternativeRoute = data?.alternativeRoute ?? null;
+  const isFallbackRoute = recommendedRoute?.polyline === "fallback-waypoints-route";
   const primaryHref = recommendedRoute
     ? `/walking?routeId=${recommendedRoute.routeId}&durationMin=${recommendedRoute.durationMin}`
     : "/walking";
@@ -80,7 +95,11 @@ export function ProposalCard() {
       >
         <div style={{ display: "grid", gap: "8px" }}>
           {recommendedRoute ? (
-            <RouteMap coordinates={recommendedRoute.coordinates} />
+            <RouteMap
+              coordinates={recommendedRoute.coordinates}
+              waypoints={recommendedRoute.waypoints}
+              legs={recommendedRoute.legs}
+            />
           ) : (
             <div
               style={{
@@ -94,6 +113,81 @@ export function ProposalCard() {
               地図を読み込み中です
             </div>
           )}
+          {recommendedRoute ? (
+            <div
+              style={{
+                display: "grid",
+                gap: "10px",
+                padding: "4px 6px 2px",
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--muted)",
+                  fontSize: "14px",
+                  lineHeight: 1.6,
+                }}
+              >
+                「出発」から始めて、数字の順に進み、最後は同じ場所に戻ります。
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  alignItems: "center",
+                }}
+              >
+                {recommendedRoute.waypoints.map((waypoint, index) => (
+                  <div
+                    key={waypoint.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        minWidth: waypoint.type === "checkpoint" ? "34px" : "60px",
+                        padding: waypoint.type === "checkpoint" ? "6px 10px" : "6px 12px",
+                        borderRadius: "999px",
+                        background:
+                          waypoint.type === "start"
+                            ? "var(--accent)"
+                            : waypoint.type === "goal"
+                              ? "#fff"
+                              : "#fffaf5",
+                        border:
+                          waypoint.type === "start"
+                            ? "1px solid var(--accent-strong)"
+                            : "1px solid var(--line)",
+                        color:
+                          waypoint.type === "start" ? "#fffaf2" : "var(--accent-strong)",
+                        textAlign: "center",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {waypointChipLabel(waypoint)}
+                    </span>
+                    {index < recommendedRoute.waypoints.length - 1 ? (
+                      <span
+                        style={{
+                          color: "var(--muted)",
+                          fontSize: "14px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        →
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <p
             style={{
               margin: 0,
@@ -121,24 +215,44 @@ export function ProposalCard() {
           {error}
         </section>
       ) : (
-        <section
-          style={{
-            background: "#fff",
-            border: "1px solid var(--line)",
-            borderRadius: "22px",
-            padding: "20px",
-          }}
-        >
-          <p style={{ margin: "0 0 8px", fontWeight: 700 }}>りゆう</p>
-          <ul style={{ margin: 0, paddingLeft: "20px", color: "var(--muted)", lineHeight: 1.8 }}>
-            <li>{recommendedRoute?.reason ?? "その日のようすに合わせて選びました"}</li>
-            <li>
-              {data
-                ? `おすすめ時間は ${data.decisionContext.weatherAdjustedDurationMin}分です`
-                : "その日の天気を見ています"}
-            </li>
-          </ul>
-        </section>
+        <>
+          {isFallbackRoute ? (
+            <section
+              style={{
+                background: "#fff7eb",
+                border: "1px solid #d8a06c",
+                borderRadius: "22px",
+                padding: "20px",
+                color: "#8e4e25",
+              }}
+            >
+              地図APIの経路取得に失敗したため、仮のルートを表示しています。
+            </section>
+          ) : null}
+          <section
+            style={{
+              background: "#fff",
+              border: "1px solid var(--line)",
+              borderRadius: "22px",
+              padding: "20px",
+            }}
+          >
+            <p style={{ margin: "0 0 8px", fontWeight: 700 }}>りゆう</p>
+            <ul style={{ margin: 0, paddingLeft: "20px", color: "var(--muted)", lineHeight: 1.8 }}>
+              <li>{recommendedRoute?.reason ?? "その日のようすに合わせて選びました"}</li>
+              <li>
+                {data
+                  ? `おすすめ時間は ${data.decisionContext.weatherAdjustedDurationMin}分です`
+                  : "その日の天気を見ています"}
+              </li>
+              <li>
+                {recommendedRoute
+                  ? `目印は ${recommendedRoute.waypoints.filter((waypoint) => waypoint.type === "checkpoint").length}か所です`
+                  : "歩く順番を整えています"}
+              </li>
+            </ul>
+          </section>
+        </>
       )}
 
       <div style={{ display: "grid", gap: "12px" }}>

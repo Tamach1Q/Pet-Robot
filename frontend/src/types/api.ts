@@ -55,6 +55,26 @@ export type SuggestWalkRouteResponse = {
       lat: number;
       lng: number;
     }[];
+    waypoints: {
+      id: string;
+      name: string;
+      type: "start" | "checkpoint" | "goal";
+      order: number;
+      lat: number;
+      lng: number;
+    }[];
+    legs: {
+      id: string;
+      fromWaypointId: string;
+      toWaypointId: string;
+      distanceM: number;
+      durationMin: number;
+      color: string;
+      coordinates: {
+        lat: number;
+        lng: number;
+      }[];
+    }[];
     reason: string;
     riskLevel: "low" | "medium" | "high";
   };
@@ -66,6 +86,26 @@ export type SuggestWalkRouteResponse = {
     coordinates: {
       lat: number;
       lng: number;
+    }[];
+    waypoints: {
+      id: string;
+      name: string;
+      type: "start" | "checkpoint" | "goal";
+      order: number;
+      lat: number;
+      lng: number;
+    }[];
+    legs: {
+      id: string;
+      fromWaypointId: string;
+      toWaypointId: string;
+      distanceM: number;
+      durationMin: number;
+      color: string;
+      coordinates: {
+        lat: number;
+        lng: number;
+      }[];
     }[];
     reason: string;
     riskLevel: "low" | "medium" | "high";
