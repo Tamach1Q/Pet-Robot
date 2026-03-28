@@ -24,13 +24,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pet-robot-backend
+    env_file:
+      - path: ./backend/.env.local
+        required: false
     environment:
       HOST: 0.0.0.0
       PORT: 3002
       STORAGE_MODE: postgres
       DATABASE_URL: postgresql://postgres:postgres@db:5432/pet_robot
-      OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
-      ORS_API_KEY: ${ORS_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

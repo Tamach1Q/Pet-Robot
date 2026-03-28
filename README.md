@@ -70,8 +70,16 @@ Docker Desktop が入っていれば、`docker compose` で一式起動できま
 ### 起動
 
 ```bash
-export OPENROUTESERVICE_API_KEY=your_api_key
 docker compose up --build
+```
+
+`backend/.env.local` に `OPENROUTESERVICE_API_KEY=...` が入っていれば、そのまま使われます。  
+未作成なら、以下のように作成してください。
+
+```bash
+cat <<'EOF' > backend/.env.local
+OPENROUTESERVICE_API_KEY=your_api_key
+EOF
 ```
 
 起動されるもの:
@@ -98,7 +106,7 @@ docker compose down -v
 ### 補足
 
 - PostgreSQL は `db/schema.sql` と `db/seed.sql` で初期化されます。
-- `/setup` の経路生成には `OPENROUTESERVICE_API_KEY` が必要です。
+- `/setup` の経路生成には `backend/.env.local` の `OPENROUTESERVICE_API_KEY` が必要です。
 - フロントエンドは Docker 内で `http://backend:3002` に proxy します。
 
 ## よく使う URL
