@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-const backendOrigin = (process.env.API_PROXY_TARGET ?? "http://127.0.0.1:3000").replace(
+const backendOrigin = (process.env.API_PROXY_TARGET ?? "http://127.0.0.1:3002").replace(
   /\/$/,
   "",
 );

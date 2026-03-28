@@ -8,6 +8,8 @@ npm install
 npm run dev
 ```
 
+デフォルトの待受ポートは `3002`。
+
 PostgreSQL を使う場合。
 
 ```bash

@@ -49,7 +49,7 @@ export function loadEnv(): Env {
   const storageMode = process.env.STORAGE_MODE === "postgres" ? "postgres" : "memory";
 
   return {
-    port: Number(process.env.PORT ?? 3000),
+    port: Number(process.env.PORT ?? 3002),
     host: process.env.HOST ?? "0.0.0.0",
     storageMode,
     databaseUrl: process.env.DATABASE_URL ?? null,

@@ -110,7 +110,11 @@ export function ProposalCard() {
                 fontWeight: 700,
               }}
             >
-              地図を読み込み中です
+              {loading
+                ? "地図を読み込み中です"
+                : error
+                  ? "地図を表示できませんでした"
+                  : "おすすめを準備しています"}
             </div>
           )}
           {recommendedRoute ? (

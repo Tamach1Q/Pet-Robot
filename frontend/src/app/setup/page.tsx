@@ -1,9 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { SetupLocation } from "@/components/setup/SetupMap";
 import { generateLoopRoute } from "@/lib/api/walkRoutes";
+import { routes } from "@/lib/constants/routes";
+import { clearPersistedWalkingRoute, persistWalkingRoute } from "@/lib/walkingRouteStorage";
 
 const DynamicSetupMap = dynamic(
   () => import("@/components/setup/SetupMap").then((module) => module.SetupMap),
@@ -47,10 +50,10 @@ type PermissionStateValue = "granted" | "prompt" | "denied" | "unsupported" | "u
 
 type LocationDiagnostics = {
   permissionState: PermissionStateValue;
-  isSecureContext: boolean;
-  protocol: string;
-  host: string;
-  isOnline: boolean;
+  isSecureContext: boolean | null;
+  protocol: string | null;
+  host: string | null;
+  isOnline: boolean | null;
   lastAttemptStartedAt: string | null;
   lastSuccessfulStage: "coarse" | "precise" | null;
   lastSuccessfulAccuracyMeters: number | null;
@@ -60,6 +63,59 @@ type LocationDiagnostics = {
   lastErrorCode: number | null;
   lastErrorMessage: string | null;
 };
+
+const INITIAL_LOCATION_DIAGNOSTICS: LocationDiagnostics = {
+  permissionState: "unknown",
+  isSecureContext: null,
+  protocol: null,
+  host: null,
+  isOnline: null,
+  lastAttemptStartedAt: null,
+  lastSuccessfulStage: null,
+  lastSuccessfulAccuracyMeters: null,
+  lastCoarseDurationMs: null,
+  lastPreciseDurationMs: null,
+  lastErrorStage: null,
+  lastErrorCode: null,
+  lastErrorMessage: null,
+};
+
+function getRuntimeLocationDiagnosticsSnapshot(): Partial<LocationDiagnostics> {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return {};
+  }
+
+  return {
+    isSecureContext: window.isSecureContext,
+    protocol: window.location.protocol,
+    host: window.location.host,
+    isOnline: navigator.onLine,
+  };
+}
+
+function formatSecureContext(value: boolean | null): string {
+  if (value === null) {
+    return "確認中";
+  }
+
+  return value ? "yes" : "no";
+}
+
+function formatRuntimeUrl(protocol: string | null, host: string | null): string {
+  if (!protocol || !host) {
+    return "確認中";
+  }
+
+  return `${protocol}//${host}`;
+}
+
+function formatNetworkStatus(value: boolean | null): string {
+  if (value === null) {
+    return "確認中";
+  }
+
+  return value ? "online" : "offline";
+}
 
 function geolocationErrorMessage(error: GeolocationPositionError): string {
   switch (error.code) {
@@ -202,31 +258,25 @@ export default function SetupPage() {
     status: "loading",
     message: "現在地を確認しています。位置情報の利用を許可してください。",
   });
-  const [locationDiagnostics, setLocationDiagnostics] = useState<LocationDiagnostics>({
-    permissionState: "unknown",
-    isSecureContext: typeof window !== "undefined" ? window.isSecureContext : false,
-    protocol: typeof window !== "undefined" ? window.location.protocol : "",
-    host: typeof window !== "undefined" ? window.location.host : "",
-    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
-    lastAttemptStartedAt: null,
-    lastSuccessfulStage: null,
-    lastSuccessfulAccuracyMeters: null,
-    lastCoarseDurationMs: null,
-    lastPreciseDurationMs: null,
-    lastErrorStage: null,
-    lastErrorCode: null,
-    lastErrorMessage: null,
-  });
+  const [locationDiagnostics, setLocationDiagnostics] = useState<LocationDiagnostics>(
+    INITIAL_LOCATION_DIAGNOSTICS,
+  );
   const hasRequestedInitialLocationRef = useRef(false);
   const hasUserAdjustedLocationRef = useRef(false);
 
   function clearGeneratedRoute(message = "条件が変わりました。もう一度経路を作成してください。") {
+    clearPersistedWalkingRoute();
     setGeneratedRoute(null);
     setGenerationError(null);
     setGenerationMessage(message);
   }
 
   function requestCurrentLocation(forceApply = false) {
+    setLocationDiagnostics((current) => ({
+      ...current,
+      ...getRuntimeLocationDiagnosticsSnapshot(),
+    }));
+
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setLocationState({
         status: "error",
@@ -264,11 +314,8 @@ export default function SetupPage() {
 
       setLocationDiagnostics((current) => ({
         ...current,
+        ...getRuntimeLocationDiagnosticsSnapshot(),
         permissionState,
-        isSecureContext: window.isSecureContext,
-        protocol: window.location.protocol,
-        host: window.location.host,
-        isOnline: navigator.onLine,
         lastAttemptStartedAt: attemptStartedAt,
         lastErrorStage: null,
         lastErrorCode: null,
@@ -390,6 +437,11 @@ export default function SetupPage() {
   }
 
   useEffect(() => {
+    setLocationDiagnostics((current) => ({
+      ...current,
+      ...getRuntimeLocationDiagnosticsSnapshot(),
+    }));
+
     if (hasRequestedInitialLocationRef.current) {
       return;
     }
@@ -474,12 +526,14 @@ export default function SetupPage() {
         lat,
         lng,
       }));
-
-      setGeneratedRoute({
+      const nextGeneratedRoute = {
         coordinates,
         totalDistanceMeters: response.route.totalDistanceMeters,
         estimatedDurationSeconds: response.route.estimatedDurationSeconds,
-      });
+      };
+
+      persistWalkingRoute(nextGeneratedRoute);
+      setGeneratedRoute(nextGeneratedRoute);
       setGenerationMessage("ループ経路を作成しました。地図と結果を確認できます。");
     } catch (error) {
       console.error("SetupPage.handleGenerateRoute failed", {
@@ -487,6 +541,7 @@ export default function SetupPage() {
         walkMinutes,
         error,
       });
+      clearPersistedWalkingRoute();
       setGeneratedRoute(null);
       setGenerationError(
         error instanceof Error
@@ -552,9 +607,9 @@ export default function SetupPage() {
               <p className="font-black text-[color:var(--ink)]">位置情報の診断</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <p>権限状態: {locationDiagnostics.permissionState}</p>
-                <p>Secure Context: {locationDiagnostics.isSecureContext ? "yes" : "no"}</p>
-                <p>URL: {locationDiagnostics.protocol}//{locationDiagnostics.host}</p>
-                <p>ネット接続: {locationDiagnostics.isOnline ? "online" : "offline"}</p>
+                <p>Secure Context: {formatSecureContext(locationDiagnostics.isSecureContext)}</p>
+                <p>URL: {formatRuntimeUrl(locationDiagnostics.protocol, locationDiagnostics.host)}</p>
+                <p>ネット接続: {formatNetworkStatus(locationDiagnostics.isOnline)}</p>
                 <p>最終試行: {locationDiagnostics.lastAttemptStartedAt ?? "未実行"}</p>
                 <p>成功段階: {locationDiagnostics.lastSuccessfulStage ?? "なし"}</p>
                 <p>
@@ -624,24 +679,6 @@ export default function SetupPage() {
               />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
-                <p className="text-sm font-bold text-[color:var(--muted)]">緯度</p>
-                <p className="mt-2 text-2xl font-black">
-                  {markerPosition.lat.toFixed(6)}
-                </p>
-              </div>
-              <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
-                <p className="text-sm font-bold text-[color:var(--muted)]">経度</p>
-                <p className="mt-2 text-2xl font-black">
-                  {markerPosition.lng.toFixed(6)}
-                </p>
-              </div>
-              <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
-                <p className="text-sm font-bold text-[color:var(--muted)]">地図の拡大</p>
-                <p className="mt-2 text-2xl font-black">Zoom {zoom}</p>
-              </div>
-            </div>
           </section>
 
           <section className="rounded-[32px] border border-[color:var(--line)] bg-[color:var(--surface)] px-5 py-5 shadow-[0_24px_60px_rgba(90,60,32,0.08)] sm:px-6 sm:py-6">
@@ -761,24 +798,38 @@ export default function SetupPage() {
             </div>
 
             {generatedRoute ? (
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
-                  <p className="text-sm font-bold text-[color:var(--muted)]">総距離</p>
-                  <p className="mt-2 text-2xl font-black">
-                    {(generatedRoute.totalDistanceMeters / 1000).toFixed(2)} km
-                  </p>
+              <div className="mt-5 space-y-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
+                    <p className="text-sm font-bold text-[color:var(--muted)]">総距離</p>
+                    <p className="mt-2 text-2xl font-black">
+                      {(generatedRoute.totalDistanceMeters / 1000).toFixed(2)} km
+                    </p>
+                  </div>
+                  <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
+                    <p className="text-sm font-bold text-[color:var(--muted)]">推定時間</p>
+                    <p className="mt-2 text-2xl font-black">
+                      {Math.round(generatedRoute.estimatedDurationSeconds / 60)} 分
+                    </p>
+                  </div>
+                  <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
+                    <p className="text-sm font-bold text-[color:var(--muted)]">経路点数</p>
+                    <p className="mt-2 text-2xl font-black">
+                      {generatedRoute.coordinates.length} 点
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
-                  <p className="text-sm font-bold text-[color:var(--muted)]">推定時間</p>
-                  <p className="mt-2 text-2xl font-black">
-                    {Math.round(generatedRoute.estimatedDurationSeconds / 60)} 分
+
+                <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-4 py-4 sm:px-5">
+                  <p className="text-base font-bold text-emerald-900 sm:text-lg">
+                    経路の準備ができました。内容を確認したらお散歩を始められます。
                   </p>
-                </div>
-                <div className="rounded-[22px] bg-[color:var(--surface-strong)] px-4 py-4">
-                  <p className="text-sm font-bold text-[color:var(--muted)]">経路点数</p>
-                  <p className="mt-2 text-2xl font-black">
-                    {generatedRoute.coordinates.length} 点
-                  </p>
+                  <Link
+                    href={`${routes.walking}?source=setup&durationMin=${walkMinutes}`}
+                    className="mt-4 inline-flex min-h-16 w-full items-center justify-center rounded-[22px] bg-emerald-600 px-6 py-4 text-center text-2xl font-black text-white shadow-[0_16px_32px_rgba(5,150,105,0.24)] transition hover:bg-emerald-700"
+                  >
+                    この経路でお散歩を始める
+                  </Link>
                 </div>
               </div>
             ) : null}

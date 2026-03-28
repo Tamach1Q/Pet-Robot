@@ -16,11 +16,14 @@ npm run dev
 ```
 
 フロントは `3001` 番ポートで起動する。
-バックエンドは `3000` 番ポート想定。
+バックエンドは `3002` 番ポート想定。
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:3000
+API_PROXY_TARGET=http://127.0.0.1:3002
 ```
+
+`NEXT_PUBLIC_API_BASE_URL` を設定しない場合、フロントは同一オリジンの `/api` に投げて
+Next.js の rewrite 経由でバックエンドへ接続する。
 
 ## 画面
 
