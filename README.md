@@ -63,6 +63,44 @@ npm run dev
 
 フロントエンドは `http://127.0.0.1:3001` で起動します。
 
+## Docker
+
+Docker Desktop が入っていれば、`docker compose` で一式起動できます。
+
+### 起動
+
+```bash
+export OPENROUTESERVICE_API_KEY=your_api_key
+docker compose up --build
+```
+
+起動されるもの:
+
+- `frontend`
+  - `http://127.0.0.1:3001`
+- `backend`
+  - `http://127.0.0.1:3002`
+- `postgres`
+  - `localhost:5432`
+
+### 停止
+
+```bash
+docker compose down
+```
+
+DB データも消す場合:
+
+```bash
+docker compose down -v
+```
+
+### 補足
+
+- PostgreSQL は `db/schema.sql` と `db/seed.sql` で初期化されます。
+- `/setup` の経路生成には `OPENROUTESERVICE_API_KEY` が必要です。
+- フロントエンドは Docker 内で `http://backend:3002` に proxy します。
+
 ## よく使う URL
 
 - `http://127.0.0.1:3001/setup`
